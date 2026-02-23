@@ -1,9 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/store_provider.dart';
+import 'oobe_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  // Fungsi untuk memunculkan dialog konfirmasi
+  void _showResetConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Reset Data Toko?'),
+          content: const Text(
+            'Apakah kamu yakin ingin menghapus nama toko, foto, dan lokasi? '
+            'Kamu akan dikembalikan ke layar awal aplikasi.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext); 
+                
+                // Hapus data dari provider & memori
+                await Provider.of<StoreProvider>(context, listen: false).clearStoreInfo();
+                
+                // Pindah ke OOBE
+                if (!context.mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OobeScreen()),
+                  (route) => false,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Ya, Reset'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +124,28 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+
+          // Manajemen data (reset toko)
+          const SizedBox(height: 30),
+          const Text(
+            'Manajemen Data', 
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold
+              )
+            ),
+          const SizedBox(height: 10),
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: const Icon(Icons.restore_page, color: Colors.red),
+              title: const Text('Reset Data Toko', style: TextStyle(color: Colors.red)),
+              subtitle: const Text('Hapus profil toko dan kembali ke awal'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              onTap: () => _showResetConfirmation(context),
             ),
           ),
         ],

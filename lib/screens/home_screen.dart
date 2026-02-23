@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'settings_screen.dart';
+import 'dart:io';
+import 'package:provider/provider.dart';
+import '../providers/store_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,18 +29,42 @@ class HomeScreen extends StatelessWidget {
         children: [
           const SizedBox(height: 40),
           // --- BAGIAN HEADER (Foto & Nama Toko) ---
-          const CircleAvatar(
-            radius: 50,
-            // Temporary placehodler
-            child: Icon(Icons.storefront, size: 50), 
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Toko Placeholder',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
+          Consumer<StoreProvider>(
+            builder: (context, storeProvider, child) {
+              return Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    // Cek apakah ada path foto yang tersimpan
+                    backgroundImage: storeProvider.imagePath.isNotEmpty 
+                        ? FileImage(File(storeProvider.imagePath)) 
+                        : null,
+                    child: storeProvider.imagePath.isEmpty
+                        ? const Icon(Icons.storefront, size: 50)
+                        : null, 
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    // Menampilkan nama toko
+                    storeProvider.storeName.isNotEmpty 
+                        ? storeProvider.storeName 
+                        : 'Nama Toko',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // Menampilkan lokasi toko
+                  if (storeProvider.storeLocation.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      storeProvider.storeLocation,
+                      style: const TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ]
+                ],
+              );
+            },
           ),
           
           const SizedBox(height: 40),

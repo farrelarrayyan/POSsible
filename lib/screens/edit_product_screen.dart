@@ -7,22 +7,41 @@ import 'package:path/path.dart' as path;
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 
-class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+class EditProductScreen extends StatefulWidget {
+  final Product product; // Data produk yang akan diedit
+
+  const EditProductScreen({super.key, required this.product});
 
   @override
-  State<AddProductScreen> createState() => _AddProductScreenState();
+  State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
+class _EditProductScreenState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _stockController = TextEditingController();
-  final _priceController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _categoryController;
+  late TextEditingController _weightController;
+  late TextEditingController _stockController;
+  late TextEditingController _priceController;
   
   File? _selectedImage;
+  String _existingImagePath = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Isi form dengan data produk yang sudah ada
+    _nameController = TextEditingController(text: widget.product.name);
+    _categoryController = TextEditingController(text: widget.product.category);
+    _weightController = TextEditingController(text: widget.product.weight.toString());
+    _stockController = TextEditingController(text: widget.product.stock.toString());
+    _priceController = TextEditingController(text: widget.product.price.toString());
+    
+    _existingImagePath = widget.product.imagePath;
+    if (_existingImagePath.isNotEmpty) {
+      _selectedImage = File(_existingImagePath);
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -35,34 +54,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-  void _saveProduct() async {
-    // Validasi form
+  void _updateProduct() async {
     if (_formKey.currentState!.validate()) {
-      String imagePath = '';
+      String finalImagePath = _existingImagePath;
       
-      // Jika ada gambar, simpan ke memori permanen
-      if (_selectedImage != null) {
+      // Jika pengguna memilih gambar baru
+      if (_selectedImage != null && _selectedImage!.path != _existingImagePath) {
         final directory = await getApplicationDocumentsDirectory();
         final fileName = path.basename(_selectedImage!.path);
         final savedImage = await _selectedImage!.copy('${directory.path}/$fileName');
-        imagePath = savedImage.path;
+        finalImagePath = savedImage.path;
       }
 
-      // Buat object Product baru
-      final newProduct = Product(
+      // Buat object Product dengan ID yang sama
+      final updatedProduct = Product(
+        id: widget.product.id,
         name: _nameController.text.trim(),
         category: _categoryController.text.trim().isNotEmpty ? _categoryController.text.trim() : 'Umum',
-        imagePath: imagePath,
+        imagePath: finalImagePath,
         weight: int.tryParse(_weightController.text) ?? 0,
         stock: int.tryParse(_stockController.text) ?? 0,
         price: int.tryParse(_priceController.text) ?? 0,
       );
 
-      // Simpan ke sqflite
+      // Panggil fungsi update
       if (!mounted) return;
-      await Provider.of<ProductProvider>(context, listen: false).addProduct(newProduct);
+      await Provider.of<ProductProvider>(context, listen: false).updateProduct(updatedProduct);
 
-      // Tutup layar form
+      // Kembali ke layar inventori
       if (!mounted) return;
       Navigator.pop(context);
     }
@@ -74,7 +93,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Produk Baru'),
+        title: const Text('Edit Produk'),
         elevation: 0,
       ),
       body: Form(
@@ -82,7 +101,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         child: ListView(
           padding: const EdgeInsets.all(24.0),
           children: [
-            // Pilih Foto Produk
             Center(
               child: GestureDetector(
                 onTap: _pickImage,
@@ -103,7 +121,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Center(child: Text('Ketuk untuk menambahkan foto produk', style: TextStyle(color: Colors.grey))),
+            const Center(child: Text('Ketuk untuk ubah foto', style: TextStyle(color: Colors.grey))),
             const SizedBox(height: 24),
 
             TextFormField(
@@ -115,7 +133,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
             TextFormField(
               controller: _categoryController,
-              decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder(), hintText: 'Contoh: Makanan, Minuman'),
+              decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
 
@@ -126,7 +144,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller: _stockController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Stok', border: OutlineInputBorder()),
-                    validator: (value) => value == null || value.isEmpty ? 'Stok wajib diisi' : null,
+                    validator: (value) => value == null || value.isEmpty ? 'Isi stok' : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -144,7 +162,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             TextFormField(
               controller: _priceController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Harga Jual (Rp) *', border: OutlineInputBorder(), prefixText: 'Rp '),
+              decoration: const InputDecoration(labelText: 'Harga Jual (Rp)', border: OutlineInputBorder(), prefixText: 'Rp '),
               validator: (value) => value == null || value.isEmpty ? 'Harga wajib diisi' : null,
             ),
             const SizedBox(height: 32),
@@ -152,13 +170,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
             SizedBox(
               height: 50,
               child: ElevatedButton(
-                onPressed: _saveProduct,
+                onPressed: _updateProduct,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Simpan Produk', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text('Simpan Perubahan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

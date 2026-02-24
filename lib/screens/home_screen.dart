@@ -1,9 +1,10 @@
+import 'dart:io';
+import '../providers/store_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'settings_screen.dart';
-import 'dart:io';
-import 'package:provider/provider.dart';
-import '../providers/store_provider.dart';
 import 'inventory_screen.dart';
+import 'cashier_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -81,9 +82,11 @@ class HomeScreen extends StatelessWidget {
                   title: 'Mode Kasir',
                   description: 'Mulai transaksi dan catat penjualan',
                   onTap: () {
-                    // TODO: kasir page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur Kasir belum dibuat')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CashierScreen(),
+                      ),
                     );
                   },
                 ),

@@ -3,6 +3,7 @@ import 'settings_screen.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../providers/store_provider.dart';
+import 'inventory_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -92,9 +93,11 @@ class HomeScreen extends StatelessWidget {
                   title: 'Produk & Inventori',
                   description: 'Kelola daftar barang, harga, dan stok',
                   onTap: () {
-                    // TODO: CRUD page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur Inventori Toko belum dibuat')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InventoryScreen(),
+                      ),
                     );
                   },
                 ),

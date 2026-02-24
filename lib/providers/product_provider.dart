@@ -49,4 +49,11 @@ class ProductProvider extends ChangeNotifier {
     await DatabaseHelper.instance.deleteProduct(id);
     await loadProducts();
   }
+
+  // Factory reset (menghapus semua data dari database dan memori)
+  Future<void> clearAllProducts() async {
+    await DatabaseHelper.instance.clearAllData();
+    _products.clear();
+    notifyListeners();
+  }
 }

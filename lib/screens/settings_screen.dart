@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/store_provider.dart';
+import '../providers/product_provider.dart';
 import 'oobe_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -29,15 +30,19 @@ class SettingsScreen extends StatelessWidget {
               onPressed: () async {
                 Navigator.pop(dialogContext); 
                 
-                // Hapus data dari provider & memori
+                // Hapus profil toko dari SharedPreferences
                 await Provider.of<StoreProvider>(context, listen: false).clearStoreInfo();
                 
-                // Pindah ke OOBE
+                // Hapus seluruh isi database
+                if (!context.mounted) return;
+                await Provider.of<ProductProvider>(context, listen: false).clearAllProducts();
+                
+                // Kembali ke layar OOBE
                 if (!context.mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const OobeScreen()),
-                  (route) => false,
+                  (route) => false, 
                 );
               },
               style: ElevatedButton.styleFrom(

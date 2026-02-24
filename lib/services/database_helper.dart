@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/product.dart';
+import '../models/transaction_model.dart';
+import '../models/transaction_item.dart';
 
 class DatabaseHelper {
   // Membuat instance singleton agar database hanya dibuka sekali
@@ -25,12 +27,12 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  // Mengeksekusi query pembuatan tabel saat database pertama kali dibuat
-  Future _createDB(Database db, int version) async {
+Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
     const integerType = 'INTEGER NOT NULL';
 
+    // Tabel Produk
     await db.execute('''
       CREATE TABLE products (
         id $idType,
@@ -40,6 +42,28 @@ class DatabaseHelper {
         weight $integerType,
         stock $integerType,
         price $integerType
+      )
+    ''');
+
+    // Tabel Transaksi
+    await db.execute('''
+      CREATE TABLE transactions (
+        id $idType,
+        date $textType,
+        totalAmount $integerType
+      )
+    ''');
+
+    // 3. Tabel Item Transaksi
+    await db.execute('''
+      CREATE TABLE transaction_items (
+        id $idType,
+        transactionId $integerType,
+        productId $integerType,
+        productName $textType,
+        productPrice $integerType,
+        quantity $integerType,
+        FOREIGN KEY (transactionId) REFERENCES transactions (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -97,6 +121,43 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // Fungsi untuk transaksi kasir
+  Future<int> insertTransaction(TransactionModel transaction, List<TransactionItem> items) async {
+    final db = await instance.database;
+    int transactionId = 0;
+
+    await db.transaction((txn) async {
+      // Simpan nota transaksi
+      transactionId = await txn.insert('transactions', transaction.toMap());
+
+      // Loop setiap barang yang dibeli
+      for (var item in items) {
+        // Gabungkan ID Nota ke dalam item
+        final itemMap = item.toMap();
+        itemMap['transactionId'] = transactionId;
+        
+        // Simpan item ke database
+        await txn.insert('transaction_items', itemMap);
+
+        // Otomatis kurangi stok di tabel produk
+        await txn.rawUpdate(
+          'UPDATE products SET stock = stock - ? WHERE id = ?',
+          [item.quantity, item.productId]
+        );
+      }
+    });
+
+    return transactionId;
+  }
+
+  // Fungsi factory reset (hapus semua data)
+  Future<void> clearAllData() async {
+    final db = await instance.database;
+    await db.delete('transaction_items');
+    await db.delete('transactions');
+    await db.delete('products');
   }
 
   // Menutup database

@@ -58,6 +58,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final newTransaction = TransactionModel(
       date: DateTime.now().toIso8601String(), // Simpan waktu dengan format ISO
       totalAmount: _totalPrice,
+      paymentMethod: _paymentMethod,
     );
 
     // Buat Daftar Item yang Dibeli

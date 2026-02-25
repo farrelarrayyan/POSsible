@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'settings_screen.dart';
 import 'inventory_screen.dart';
 import 'cashier_screen.dart';
+import 'history_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -110,9 +111,11 @@ class HomeScreen extends StatelessWidget {
                   title: 'Riwayat Transaksi',
                   description: 'Lihat riwayat penjualan',
                   onTap: () {
-                    // TODO: history page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur Riwayat Penjualan toko belum dibuat')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
                     );
                   },
                 ),

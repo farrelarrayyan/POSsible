@@ -50,7 +50,8 @@ Future _createDB(Database db, int version) async {
       CREATE TABLE transactions (
         id $idType,
         date $textType,
-        totalAmount $integerType
+        totalAmount $integerType,
+        paymentMethod $textType
       )
     ''');
 
@@ -150,6 +151,28 @@ Future _createDB(Database db, int version) async {
     });
 
     return transactionId;
+  }
+
+  // Mengambil semua riwayat transaksi
+  Future<List<TransactionModel>> getAllTransactions() async {
+    final db = await instance.database;
+    // Urutan by id secara desc, transaksi terbaru diatas
+    final result = await db.query('transactions', orderBy: 'id DESC');
+    
+    return result.map((json) => TransactionModel.fromMap(json)).toList();
+  }
+
+  // Mengambil detail barang dari sebuah transaksi tertentu
+  Future<List<TransactionItem>> getTransactionItems(int transactionId) async {
+    final db = await instance.database;
+    
+    final result = await db.query(
+      'transaction_items',
+      where: 'transactionId = ?',
+      whereArgs: [transactionId],
+    );
+    
+    return result.map((json) => TransactionItem.fromMap(json)).toList();
   }
 
   // Fungsi factory reset (hapus semua data)

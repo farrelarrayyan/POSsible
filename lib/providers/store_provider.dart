@@ -34,7 +34,7 @@ class StoreProvider extends ChangeNotifier {
   Future<void> saveStoreInfo(String name, String location, File? imageFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     
-    // 1. Simpan Teks
+    // Simpan Teks
     await prefs.setString('store_name', name);
     await prefs.setString('store_location', location);
     _storeName = name;
@@ -44,7 +44,14 @@ class StoreProvider extends ChangeNotifier {
     if (imageFile != null) {
       final directory = await getApplicationDocumentsDirectory();
       final fileName = path.basename(imageFile.path);
-      final savedImage = await imageFile.copy('${directory.path}/$fileName');
+      final targetPath = '${directory.path}/$fileName';
+      
+      File savedImage = imageFile;
+
+      // Bugfix: hanya copy file jika path asalnya berbeda dengan path tujuan
+      if (imageFile.path != targetPath) {
+        savedImage = await imageFile.copy(targetPath);
+      }
       
       // Simpan path
       await prefs.setString('store_image_path', savedImage.path);

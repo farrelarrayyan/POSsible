@@ -6,6 +6,7 @@ import 'settings_screen.dart';
 import 'inventory_screen.dart';
 import 'cashier_screen.dart';
 import 'history_screen.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,14 +19,16 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.account_circle, size: 28),
             onPressed: () {
-              // TODO: profile page
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Edit Profil Toko belum dibuat')),
+              // Navigasi ke halaman edit profil
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EditProfileScreen()),
               );
             },
-          )
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(

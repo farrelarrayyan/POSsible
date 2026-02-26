@@ -5,6 +5,7 @@ class TransactionModel {
   final String date;
   final int totalAmount;
   final String paymentMethod;
+  final int cashAmount;
   
   // List untuk mempermudah membawa data di dalam aplikasi
   List<TransactionItem>? items;
@@ -14,6 +15,7 @@ class TransactionModel {
     required this.date,
     required this.totalAmount,
     required this.paymentMethod,
+    this.cashAmount = 0,
     this.items,
   });
 
@@ -23,6 +25,7 @@ class TransactionModel {
       'date': date,
       'totalAmount': totalAmount,
       'paymentMethod': paymentMethod,
+      'cashAmount': cashAmount,
     };
   }
 
@@ -32,6 +35,7 @@ class TransactionModel {
       date: map['date'],
       totalAmount: map['totalAmount'],
       paymentMethod: map['paymentMethod'] ?? 'Tunai', // Default tunai
+      cashAmount: map['cashAmount'] ?? 0,
     );
   }
 }

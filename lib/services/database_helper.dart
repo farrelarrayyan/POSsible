@@ -51,11 +51,12 @@ Future _createDB(Database db, int version) async {
         id $idType,
         date $textType,
         totalAmount $integerType,
-        paymentMethod $textType
+        paymentMethod $textType,
+        cashAmount $integerType
       )
     ''');
 
-    // 3. Tabel Item Transaksi
+    // Tabel Item Transaksi
     await db.execute('''
       CREATE TABLE transaction_items (
         id $idType,

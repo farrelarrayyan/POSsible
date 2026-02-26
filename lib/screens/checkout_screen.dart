@@ -59,6 +59,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       date: DateTime.now().toIso8601String(), // Simpan waktu dengan format ISO
       totalAmount: _totalPrice,
       paymentMethod: _paymentMethod,
+      cashAmount: _paymentMethod == 'Tunai' ? _cashGiven : 0,
     );
 
     // Buat Daftar Item yang Dibeli

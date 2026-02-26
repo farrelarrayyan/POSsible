@@ -17,11 +17,49 @@ class _CashierScreenState extends State<CashierScreen> {
   // Menyimpan keranjang belanja (key = produk, value = jumlah)
   final Map<Product, int> _cart = {};
 
+  // State untuk fitur pencarian, filter, dan sorting
+  String _searchQuery = '';
+  String _selectedCategory = 'Semua Kategori';
+  String _sortBy = 'Nama (A-Z)';
+
   final currencyFormatter = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
     decimalDigits: 0,
   );
+
+  // Fungsi untuk memproses data produk (Search, Filter, Sort)
+  List<Product> _getProcessedProducts(List<Product> allProducts) {
+    // Search
+    var processed = allProducts.where((p) => 
+      p.name.toLowerCase().contains(_searchQuery.toLowerCase())
+    ).toList();
+
+    // Filter kategori
+    if (_selectedCategory != 'Semua Kategori') {
+      processed = processed.where((p) => p.category == _selectedCategory).toList();
+    }
+
+    // Sorting
+    switch (_sortBy) {
+      case 'Harga Tertinggi':
+        processed.sort((a, b) => b.price.compareTo(a.price));
+        break;
+      case 'Harga Terendah':
+        processed.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case 'Stok Terbanyak':
+        processed.sort((a, b) => b.stock.compareTo(a.stock));
+        break;
+      case 'Stok Sedikit':
+        processed.sort((a, b) => a.stock.compareTo(b.stock));
+        break;
+      default: // Nama A-Z
+        processed.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
+
+    return processed;
+  }
 
   // Fungsi untuk menambah barang ke keranjang
   void _addToCart(Product product) {
@@ -85,126 +123,246 @@ class _CashierScreenState extends State<CashierScreen> {
       ),
       body: Stack(
         children: [
-          // Gird produk
+          // Grid produk dan filters
           Consumer<ProductProvider>(
             builder: (context, productProvider, child) {
               if (productProvider.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (productProvider.products.isEmpty) {
-                return const Center(child: Text('Belum ada produk untuk dijual.'));
+              // Ekstrak semua kategori yang ada secara otomatis
+              final categories = ['Semua Kategori'];
+              categories.addAll(productProvider.products.map((p) => p.category).toSet().toList());
+
+              if (!categories.contains(_selectedCategory)) {
+                _selectedCategory = 'Semua Kategori';
               }
 
-              return GridView.builder(
-                padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 100),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  childAspectRatio: 0.65,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: productProvider.products.length,
-                itemBuilder: (context, index) {
-                  final product = productProvider.products[index];
-                  final qtyInCart = _cart[product] ?? 0;
+              // Dapatkan daftar produk yang sudah diproses
+              final displayedProducts = _getProcessedProducts(productProvider.products);
 
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      // Jika stok ada, tap seluruh card akan menambah produk ke keranjang
-                      onTap: product.stock > 0 ? () => _addToCart(product) : null,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Foto Produk
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                image: product.imagePath.isNotEmpty
-                                    ? DecorationImage(
-                                        image: FileImage(File(product.imagePath)),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
-                              ),
-                              child: product.imagePath.isEmpty
-                                  ? const Icon(Icons.image_not_supported, color: Colors.grey, size: 40)
-                                  : null,
-                            ),
-                          ),
-                          
-                          // Info Produk
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${product.weight}g • Stok: ${product.stock}',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  currencyFormatter.format(product.price),
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Tombol + dan -
-                          Container(
-                            decoration: BoxDecoration(
-                              color: qtyInCart > 0 ? primaryColor.withOpacity(0.1) : Colors.transparent,
-                              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-                            ),
-                            child: qtyInCart > 0
-                                ? Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.remove_circle_outline),
-                                        color: primaryColor,
-                                        iconSize: 28,
-                                        onPressed: () => _removeFromCart(product),
-                                      ),
-                                      Text(
-                                        '$qtyInCart',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.add_circle_outline),
-                                        color: primaryColor,
-                                        iconSize: 28,
-                                        onPressed: () => _addToCart(product),
-                                      ),
-                                    ],
-                                  )
-                                : Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Icon(
-                                      Icons.add_shopping_cart,
-                                      color: product.stock > 0 ? primaryColor : Colors.grey,
-                                    ),
-                                  ),
-                          ),
-                        ],
-                      ),
+              return Column(
+                children: [
+                  // Bagian search dan fitur
+                  Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                    child: Column(
+                      children: [
+                        // Textfield untuk search
+                        TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Cari nama produk...',
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // Row untuk filter dan sort
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade400),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    value: _selectedCategory,
+                                    icon: const Icon(Icons.filter_list),
+                                    items: categories.map((String category) {
+                                      return DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Text(category, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          _selectedCategory = newValue;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade400),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    value: _sortBy,
+                                    icon: const Icon(Icons.sort),
+                                    items: ['Nama (A-Z)', 'Harga Tertinggi', 'Harga Terendah', 'Stok Terbanyak', 'Stok Sedikit']
+                                        .map((String sortOption) {
+                                      return DropdownMenuItem<String>(
+                                        value: sortOption,
+                                        child: Text(sortOption, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          _sortBy = newValue;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bagian daftar produk
+                  Expanded(
+                    child: productProvider.products.isEmpty
+                        ? const Center(child: Text('Belum ada produk untuk dijual.'))
+                        : displayedProducts.isEmpty
+                            ? const Center(child: Text('Produk tidak ditemukan.'))
+                            : GridView.builder(
+                                padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 100),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio: 0.65,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                ),
+                                itemCount: displayedProducts.length,
+                                itemBuilder: (context, index) {
+                                  final product = displayedProducts[index]; // Menggunakan daftar yang sudah diproses
+                                  final qtyInCart = _cart[product] ?? 0;
+
+                                  return Card(
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      // Jika stok ada, tap seluruh card akan menambah produk ke keranjang
+                                      onTap: product.stock > 0 ? () => _addToCart(product) : null,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          // Foto Produk
+                                          Expanded(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                                image: product.imagePath.isNotEmpty
+                                                    ? DecorationImage(
+                                                        image: FileImage(File(product.imagePath)),
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                    : null,
+                                              ),
+                                              child: product.imagePath.isEmpty
+                                                  ? const Icon(Icons.image_not_supported, color: Colors.grey, size: 40)
+                                                  : null,
+                                            ),
+                                          ),
+                                          
+                                          // Info Produk
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  product.name,
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  '${product.weight}g • Stok: ${product.stock}',
+                                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  currencyFormatter.format(product.price),
+                                                  style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor, fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
+                                          // Tombol + dan -
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: qtyInCart > 0 ? primaryColor.withOpacity(0.1) : Colors.transparent,
+                                              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                                            ),
+                                            child: qtyInCart > 0
+                                                ? Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                    children: [
+                                                      IconButton(
+                                                        icon: const Icon(Icons.remove_circle_outline),
+                                                        color: primaryColor,
+                                                        iconSize: 28,
+                                                        onPressed: () => _removeFromCart(product),
+                                                      ),
+                                                      Text(
+                                                        '$qtyInCart',
+                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(Icons.add_circle_outline),
+                                                        color: primaryColor,
+                                                        iconSize: 28,
+                                                        onPressed: () => _addToCart(product),
+                                                      ),
+                                                    ],
+                                                  )
+                                                : Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                                    child: Icon(
+                                                      Icons.add_shopping_cart,
+                                                      color: product.stock > 0 ? primaryColor : Colors.grey,
+                                                    ),
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
               );
             },
           ),

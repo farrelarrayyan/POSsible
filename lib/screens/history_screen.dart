@@ -107,7 +107,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
-                            'ID Transaksi: #${transaction.id} - ${transaction.paymentMethod}', // <-- UBAH TEKS INI
+                            'ID Transaksi: #${transaction.id} - ${transaction.paymentMethod}',
                             style: const TextStyle(fontSize: 12)
                           ),
                         ),

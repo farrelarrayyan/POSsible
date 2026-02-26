@@ -181,6 +181,29 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                           ),
                         ],
                       ),
+                      
+                      // Informasi tunai dan kembalian
+                      if (widget.transaction.paymentMethod == 'Tunai' && widget.transaction.cashAmount > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Tunai Diterima', style: TextStyle(color: Colors.grey)),
+                            Text(currencyFormatter.format(widget.transaction.cashAmount)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Kembalian', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              currencyFormatter.format(widget.transaction.cashAmount - widget.transaction.totalAmount),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

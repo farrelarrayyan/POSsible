@@ -14,9 +14,9 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Reset Data Toko?'),
+          title: const Text('Reset Data Aplikasi?'),
           content: const Text(
-            'Apakah kamu yakin ingin menghapus nama toko, foto, dan lokasi? '
+            'Apakah kamu yakin ingin menghapus semua data aplikasi? '
             'Kamu akan dikembalikan ke layar awal aplikasi.',
           ),
           actions: [
@@ -147,8 +147,8 @@ class SettingsScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               leading: const Icon(Icons.restore_page, color: Colors.red),
-              title: const Text('Reset Data Toko', style: TextStyle(color: Colors.red)),
-              subtitle: const Text('Hapus profil toko dan kembali ke awal'),
+              title: const Text('Reset Data Aplikasi', style: TextStyle(color: Colors.red)),
+              subtitle: const Text('Hapus profil toko, data produk, dan riwayat transaksi'),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               onTap: () => _showResetConfirmation(context),
             ),

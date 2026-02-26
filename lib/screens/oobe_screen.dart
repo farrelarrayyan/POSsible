@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/store_provider.dart';
+import '../providers/theme_provider.dart';
 import 'home_screen.dart';
 
 class OobeScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _OobeScreenState extends State<OobeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nama toko tidak boleh kosong!')),
       );
+      _pageController.jumpToPage(1);
       return;
     }
 
@@ -61,13 +63,14 @@ class _OobeScreenState extends State<OobeScreen> {
           children: [
             _buildWelcomePage(context),
             _buildFormPage(context),
+            _buildThemePage(context),
           ],
         ),
       ),
     );
   }
 
-  // --- HALAMAN 1: WELCOME SCREEN ---
+  // Halaman 1: intro
   Widget _buildWelcomePage(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
 
@@ -77,8 +80,12 @@ class _OobeScreenState extends State<OobeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(),
-          // logo App (placeholder)
-          Icon(Icons.storefront, size: 100, color: primaryColor),
+          Image.asset(
+            'assets/images/logo.png',
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
           const SizedBox(height: 24),
           const Text(
             'POSsible',
@@ -116,7 +123,7 @@ class _OobeScreenState extends State<OobeScreen> {
     );
   }
 
-  // --- HALAMAN 2: FORM INFO TOKO ---
+  // Halaman 2: info toko
   Widget _buildFormPage(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
 
@@ -176,7 +183,18 @@ class _OobeScreenState extends State<OobeScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: _saveAndContinue,
+              onPressed: () {
+                if (_nameController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Nama toko tidak boleh kosong!')),
+                  );
+                  return;
+                }
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
@@ -184,10 +202,139 @@ class _OobeScreenState extends State<OobeScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Simpan!', style: TextStyle(fontSize: 16)),
+              child: const Text('Selanjutnya', style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Halaman 3: pilih tema
+  Widget _buildThemePage(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 40),
+          const Text(
+            'Pilih Tema',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Sesuaikan tampilan aplikasi dengan selera Anda.',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 40),
+
+          // Toggle Dark Mode
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SwitchListTile(
+              title: const Text('Mode Gelap'),
+              secondary: const Icon(Icons.dark_mode),
+              value: themeProvider.isDarkMode,
+              onChanged: (value) {
+                themeProvider.toggleTheme(value);
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Warna Aksen
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Warna Aksen',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 15,
+                    runSpacing: 15,
+                    children: [
+                      _buildColorOption(context, Colors.blue, 'Biru'),
+                      _buildColorOption(context, Colors.green, 'Hijau'),
+                      _buildColorOption(context, Colors.orange, 'Oranye'),
+                      _buildColorOption(context, Colors.purple, 'Ungu'),
+                      _buildColorOption(context, Colors.red, 'Merah'),
+                      _buildColorOption(context, Colors.teal, 'Teal'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const Spacer(),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: FloatingActionButton(
+              onPressed: _saveAndContinue,
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              elevation: 2,
+              child: const Icon(Icons.check),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget untuk opsi warna
+  Widget _buildColorOption(BuildContext context, Color color, String tooltip) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isSelected = themeProvider.accentColor.value == color.value;
+
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: () => themeProvider.changeAccentColor(color),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? Colors.white : Colors.transparent,
+              width: 3,
+            ),
+            boxShadow: [
+              if (isSelected)
+                BoxShadow(
+                  color: color.withOpacity(0.4),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                )
+            ],
+          ),
+          child: isSelected
+              ? const Icon(Icons.check, color: Colors.white)
+              : null,
+        ),
       ),
     );
   }

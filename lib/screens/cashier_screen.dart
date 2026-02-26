@@ -63,15 +63,32 @@ class _CashierScreenState extends State<CashierScreen> {
 
   // Fungsi untuk menambah barang ke keranjang
   void _addToCart(Product product) {
+    // Cek apakah stok asli produk memang sudah 0 sejak awal
+    if (product.stock == 0) {
+      ScaffoldMessenger.of(context).clearSnackBars(); // Bersihkan snackbar sebelumnya
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Stok ${product.name} kosong!'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return; // Hentikan eksekusi
+    }
+
     setState(() {
       final currentQty = _cart[product] ?? 0;
+      
+      // Cek apakah jumlah yang ingin dimasukkan ke keranjang melebihi sisa stok
       if (currentQty < product.stock) {
         _cart[product] = currentQty + 1;
       } else {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Stok ${product.name} tidak mencukupi!'),
-            duration: const Duration(seconds: 1),
+            content: Text('Sisa stok ${product.name} hanya ${product.stock}!'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -261,7 +278,7 @@ class _CashierScreenState extends State<CashierScreen> {
                                 ),
                                 itemCount: displayedProducts.length,
                                 itemBuilder: (context, index) {
-                                  final product = displayedProducts[index]; // Menggunakan daftar yang sudah diproses
+                                  final product = displayedProducts[index]; 
                                   final qtyInCart = _cart[product] ?? 0;
 
                                   return Card(
@@ -269,8 +286,7 @@ class _CashierScreenState extends State<CashierScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(12),
-                                      // Jika stok ada, tap seluruh card akan menambah produk ke keranjang
-                                      onTap: product.stock > 0 ? () => _addToCart(product) : null,
+                                      onTap: () => _addToCart(product),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.stretch,
                                         children: [
@@ -308,7 +324,12 @@ class _CashierScreenState extends State<CashierScreen> {
                                                 const SizedBox(height: 2),
                                                 Text(
                                                   '${product.weight}g • Stok: ${product.stock}',
-                                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                                  style: TextStyle(
+                                                    fontSize: 11, 
+                                                    // Beri warna merah pada teks stok jika habis
+                                                    color: product.stock == 0 ? Colors.red : Colors.grey.shade600,
+                                                    fontWeight: product.stock == 0 ? FontWeight.bold : FontWeight.normal
+                                                  ),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
@@ -350,7 +371,7 @@ class _CashierScreenState extends State<CashierScreen> {
                                                 : Padding(
                                                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                                                     child: Icon(
-                                                      Icons.add_shopping_cart,
+                                                      product.stock == 0 ? Icons.remove_shopping_cart : Icons.add_shopping_cart, // Ganti ikon jika stok habis
                                                       color: product.stock > 0 ? primaryColor : Colors.grey,
                                                     ),
                                                   ),

@@ -106,27 +106,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const Center(child: Text('Ketuk untuk menambahkan foto produk', style: TextStyle(color: Colors.grey))),
             const SizedBox(height: 24),
 
+            // Nama
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nama Produk', border: OutlineInputBorder()),
-              validator: (value) => value == null || value.isEmpty ? 'Nama produk wajib diisi' : null,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Wajib diisi' : null,
             ),
             const SizedBox(height: 16),
 
+            // Kategori
             TextFormField(
               controller: _categoryController,
               decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder(), hintText: 'Contoh: Makanan, Minuman'),
             ),
             const SizedBox(height: 16),
 
+            // Stok & Berat
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _stockController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Stok', border: OutlineInputBorder()),
-                    validator: (value) => value == null || value.isEmpty ? 'Stok wajib diisi' : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Wajib diisi';
+                      final number = int.tryParse(value);
+                      if (number == null) return 'Angka tidak valid!';
+                      if (number <= 0) return 'Stok harus > 0!';
+                      if (number > 999999) return 'Stok melebihi batas!';
+                      return null;
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -135,17 +146,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller: _weightController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Berat (gram)', border: OutlineInputBorder()),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return null;
+                      final number = int.tryParse(value);
+                      if (number == null) return 'Angka tidak valid!';
+                      if (number <= 0) return 'Berat harus > 0!';
+                      if (number > 999999) return 'Berat melebihi batas!';
+                      return null;
+                    },
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
 
+            // Harga
             TextFormField(
               controller: _priceController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Harga Jual (Rp) *', border: OutlineInputBorder(), prefixText: 'Rp '),
-              validator: (value) => value == null || value.isEmpty ? 'Harga wajib diisi' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Harga wajib diisi!';
+                final number = int.tryParse(value);
+                if (number == null) return 'Angka tidak valid!';
+                if (number <= 0) return 'Harga harus lebih dari Rp0!';
+                if (number > 999999999) return 'Harga melebihi batas! (Maks. 999 Juta)';
+                return null;
+              },
             ),
             const SizedBox(height: 32),
 

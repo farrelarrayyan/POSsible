@@ -184,10 +184,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             TextField(
               controller: _cashController,
               keyboardType: TextInputType.number,
+              maxLength: 9,
               decoration: const InputDecoration(
                 labelText: 'Uang Tunai Diterima (Rp)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.payments),
+                counterText: '',
               ),
               onChanged: (value) {
                 setState(() {

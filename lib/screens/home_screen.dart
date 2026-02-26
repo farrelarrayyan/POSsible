@@ -50,22 +50,31 @@ class HomeScreen extends StatelessWidget {
                         : null, 
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    // Menampilkan nama toko
-                    storeProvider.storeName.isNotEmpty 
-                        ? storeProvider.storeName 
-                        : 'Nama Toko',
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
+                  
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Text(
+                      storeProvider.storeName.isNotEmpty 
+                          ? storeProvider.storeName 
+                          : 'Nama Toko',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  
                   // Menampilkan lokasi toko
                   if (storeProvider.storeLocation.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      storeProvider.storeLocation,
-                      style: const TextStyle(color: Colors.grey, fontSize: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        storeProvider.storeLocation,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
                     ),
                   ]
                 ],

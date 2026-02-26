@@ -247,7 +247,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     : displayedProducts.isEmpty
                         ? _buildEmptyState('Produk tidak ditemukan', 'Coba ubah kata kunci pencarian\natau filter kategori Anda.')
                         : ListView.builder(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 88.0),
                             itemCount: displayedProducts.length,
                             itemBuilder: (context, index) {
                               final product = displayedProducts[index];

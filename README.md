@@ -46,7 +46,7 @@ Ikuti langkah-langkah berikut untuk menjalankan aplikasi POSsible:
 
 Buka terminal Anda, lalu *clone repository* ini dan masuk ke dalam foldernya:
 ```bash
-git clone [https://github.com/username-github-kamu/possible.git](https://github.com/username-github-kamu/possible.git)
+git clone https://github.com/farrelarrayyan/POSsible.git
 cd possible
 ```
 **2. Unduh Dependencies**
